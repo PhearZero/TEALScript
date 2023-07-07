@@ -190,6 +190,24 @@
         "type": "void",
         "desc": ""
       }
+    },
+    {
+      "name": "varPlusPlus",
+      "args": [],
+      "desc": "",
+      "returns": {
+        "type": "uint64",
+        "desc": ""
+      }
+    },
+    {
+      "name": "varPlusEquals",
+      "args": [],
+      "desc": "",
+      "returns": {
+        "type": "uint64",
+        "desc": ""
+      }
     }
   ]
 }

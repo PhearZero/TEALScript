@@ -23,7 +23,7 @@ abi_route_u64plus:
 u64plus:
 	proto 2 0
 
-	// tests/contracts/math.algo.ts:6
+	// tests/contracts/math.algo.ts:9
 	// return a + b;
 	frame_dig -1 // a: uint64
 	frame_dig -2 // b: uint64
@@ -57,7 +57,7 @@ abi_route_u64minus:
 u64minus:
 	proto 2 0
 
-	// tests/contracts/math.algo.ts:10
+	// tests/contracts/math.algo.ts:13
 	// return a - b;
 	frame_dig -1 // a: uint64
 	frame_dig -2 // b: uint64
@@ -91,7 +91,7 @@ abi_route_u64mul:
 u64mul:
 	proto 2 0
 
-	// tests/contracts/math.algo.ts:14
+	// tests/contracts/math.algo.ts:17
 	// return a * b;
 	frame_dig -1 // a: uint64
 	frame_dig -2 // b: uint64
@@ -125,7 +125,7 @@ abi_route_u64div:
 u64div:
 	proto 2 0
 
-	// tests/contracts/math.algo.ts:18
+	// tests/contracts/math.algo.ts:21
 	// return a / b;
 	frame_dig -1 // a: uint64
 	frame_dig -2 // b: uint64
@@ -157,7 +157,7 @@ abi_route_u256plus:
 u256plus:
 	proto 2 0
 
-	// tests/contracts/math.algo.ts:22
+	// tests/contracts/math.algo.ts:25
 	// return a + b;
 	frame_dig -1 // a: uint256
 	frame_dig -2 // b: uint256
@@ -190,7 +190,7 @@ abi_route_u256minus:
 u256minus:
 	proto 2 0
 
-	// tests/contracts/math.algo.ts:26
+	// tests/contracts/math.algo.ts:29
 	// return a - b;
 	frame_dig -1 // a: uint256
 	frame_dig -2 // b: uint256
@@ -223,7 +223,7 @@ abi_route_u256mul:
 u256mul:
 	proto 2 0
 
-	// tests/contracts/math.algo.ts:30
+	// tests/contracts/math.algo.ts:33
 	// return a * b;
 	frame_dig -1 // a: uint256
 	frame_dig -2 // b: uint256
@@ -256,7 +256,7 @@ abi_route_u256div:
 u256div:
 	proto 2 0
 
-	// tests/contracts/math.algo.ts:34
+	// tests/contracts/math.algo.ts:37
 	// return a / b;
 	frame_dig -1 // a: uint256
 	frame_dig -2 // b: uint256
@@ -291,7 +291,7 @@ abi_route_u64Return256:
 u64Return256:
 	proto 2 0
 
-	// tests/contracts/math.algo.ts:38
+	// tests/contracts/math.algo.ts:41
 	// return a + b;
 	frame_dig -1 // a: uint64
 	frame_dig -2 // b: uint64
@@ -323,10 +323,82 @@ abi_route_maxU64:
 maxU64:
 	proto 0 0
 
-	// tests/contracts/math.algo.ts:43
+	// tests/contracts/math.algo.ts:46
 	// assert(18_446_744_073_709_551_615)
 	int 18_446_744_073_709_551_615
 	assert
+	retsub
+
+abi_route_varPlusPlus:
+	txn OnCompletion
+	int NoOp
+	==
+	txn ApplicationID
+	int 0
+	!=
+	&&
+	assert
+	byte 0x
+	callsub varPlusPlus
+	int 1
+	return
+
+varPlusPlus:
+	proto 1 0
+
+	// tests/contracts/math.algo.ts:50
+	// i = 0
+	int 0
+	frame_bury -1 // i: uint64
+	frame_dig -1 // i: uint64
+	int 1
+	+
+	frame_bury -1 // i: uint64
+
+	// tests/contracts/math.algo.ts:53
+	// return i;
+	frame_dig -1 // i: uint64
+	itob
+	byte 0x151f7c75
+	swap
+	concat
+	log
+	retsub
+
+abi_route_varPlusEquals:
+	txn OnCompletion
+	int NoOp
+	==
+	txn ApplicationID
+	int 0
+	!=
+	&&
+	assert
+	byte 0x
+	callsub varPlusEquals
+	int 1
+	return
+
+varPlusEquals:
+	proto 1 0
+
+	// tests/contracts/math.algo.ts:57
+	// i = 0
+	int 0
+	frame_bury -1 // i: uint64
+	frame_dig -1 // i: uint64
+	int 1
+	+
+	frame_bury -1 // i: uint64
+
+	// tests/contracts/math.algo.ts:60
+	// return i;
+	frame_dig -1 // i: uint64
+	itob
+	byte 0x151f7c75
+	swap
+	concat
+	log
 	retsub
 
 main:
@@ -354,6 +426,8 @@ route_abi:
 	method "u256div(uint256,uint256)uint256"
 	method "u64Return256(uint64,uint64)uint256"
 	method "maxU64()void"
+	method "varPlusPlus()uint64"
+	method "varPlusEquals()uint64"
 	txna ApplicationArgs 0
-	match abi_route_u64plus abi_route_u64minus abi_route_u64mul abi_route_u64div abi_route_u256plus abi_route_u256minus abi_route_u256mul abi_route_u256div abi_route_u64Return256 abi_route_maxU64
+	match abi_route_u64plus abi_route_u64minus abi_route_u64mul abi_route_u64div abi_route_u256plus abi_route_u256minus abi_route_u256mul abi_route_u256div abi_route_u64Return256 abi_route_maxU64 abi_route_varPlusPlus abi_route_varPlusEquals
 	err

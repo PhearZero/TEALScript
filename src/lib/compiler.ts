@@ -1485,6 +1485,7 @@ export default class Compiler {
       else if (ts.isVariableStatement(node)) this.processNode((node).declarationList);
       else if (ts.isElementAccessExpression(node)) this.processElementAccessExpression(node);
       else if (ts.isConditionalExpression(node)) this.processConditionalExpression(node);
+      else if (ts.isPostfixUnaryExpression(node)) this.processPostfixUnaryExpression(node);
       else throw new Error(`Unknown node type: ${ts.SyntaxKind[node.kind]} (${node.kind})`);
     } catch (e) {
       if (!(e instanceof Error)) throw e;
@@ -1506,6 +1507,19 @@ export default class Compiler {
     }
 
     if (isTopLevelNode) this.nodeDepth = 0;
+  }
+
+  private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression) {
+    this.processNode(node.operand);
+
+    const operator = node.getText().replace(node.operand.getText(), '');
+    if (operator === '++') this.pushLines(node, 'int 1', '+');
+    else if (operator === '--') this.pushLines(node, 'int 1', '-');
+    else throw Error(`${operator} not supported`);
+
+    if (ts.isElementAccessExpression(node.operand)) throw Error(`${operator} not yet supported on array elements`);
+
+    this.updateValue(node.operand);
   }
 
   private processObjectLiteralExpression(node: ts.ObjectLiteralExpression) {
@@ -2365,19 +2379,40 @@ export default class Compiler {
       return;
     }
 
+    let updateValue = false;
+    let operator = node.operatorToken.getText().replace('===', '==').replace('!==', '!=');
+    const equalsTokens = [
+      ts.SyntaxKind.PlusEqualsToken,
+      ts.SyntaxKind.MinusEqualsToken,
+      ts.SyntaxKind.AsteriskEqualsToken,
+      ts.SyntaxKind.AsteriskAsteriskEqualsToken,
+      ts.SyntaxKind.SlashEqualsToken,
+      ts.SyntaxKind.PercentEqualsToken,
+      ts.SyntaxKind.AmpersandEqualsToken,
+      ts.SyntaxKind.BarEqualsToken,
+      ts.SyntaxKind.BarBarToken,
+      ts.SyntaxKind.AmpersandAmpersandToken,
+    ];
+
+    if (equalsTokens.includes(node.operatorToken.kind)) {
+      if (ts.isElementAccessExpression(node.left)) throw Error(`${operator} not yet supported on array elements`);
+      updateValue = true;
+      operator = operator.replace('=', '');
+    }
+
     this.processNode(node.left);
     const leftType = this.lastType;
     this.processNode(node.right);
 
-    if (node.operatorToken.getText() === '+' && (leftType === StackType.bytes || leftType.match(/byte\[\d+\]$/))) {
+    if (operator === '+' && (leftType === StackType.bytes || leftType.match(/byte\[\d+\]$/))) {
       this.push(node.operatorToken, 'concat', StackType.bytes);
+      if (updateValue) this.updateValue(node.left);
       return;
     }
 
     const aTypes = ['account', ForeignType.Address];
     if (leftType !== this.lastType && !(aTypes.includes(leftType) && aTypes.includes(this.lastType))) throw new Error(`Type mismatch (${leftType} !== ${this.lastType}`);
 
-    const operator = node.operatorToken.getText().replace('===', '==').replace('!==', '!=');
     if (this.lastType === StackType.uint64) {
       this.push(node.operatorToken, operator, StackType.uint64);
     } else if (this.lastType.match(/uint\d+$/) || this.lastType.match(/ufixed\d+x\d+$/)) {
@@ -2386,6 +2421,8 @@ export default class Compiler {
     } else {
       this.push(node.operatorToken, operator, StackType.uint64);
     }
+
+    if (updateValue) this.updateValue(node.left);
   }
 
   private processLogicalExpression(node: ts.BinaryExpression) {
