@@ -30,6 +30,7 @@
     "compile-merkle": "tsx ./src/bin/tealscript.ts examples/merkle/merkle.algo.ts examples/merkle/artifacts && algokitgen generate -a examples/merkle/artifacts/MerkleTree.json -o examples/merkle/MerkleTreeClient.ts",
     "compile-big_box": "tsx ./src/bin/tealscript.ts examples/big_box/big_box.algo.ts examples/big_box/artifacts",
     "compile-arc72": "tsx src/bin/tealscript.ts examples/arc72/arc72.algo.ts examples/arc72/artifacts",
+    "compile-raffle": "tsx src/bin/tealscript.ts examples/raffle/raffle.algo.ts examples/raffle/artifacts",
     "run-merkle": "tsx examples/merkle/demo.ts",
     "run-tuple_in_box": "tsx ./examples/tuple_in_box/client.ts",
     "run-itxns": "tsx examples/itxns/demo.ts",
