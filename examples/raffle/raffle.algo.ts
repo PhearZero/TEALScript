@@ -70,6 +70,7 @@ class NFTRaffle extends Contract {
   startRaffle(end: number, draw: number): void {
     assert(this.app.address.assetBalance(this.asset.get()) > 0);
 
+    assert(draw > end);
     this.endRound.set(end);
     this.drawRound.set(draw);
   }
