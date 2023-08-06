@@ -35,8 +35,7 @@ class NFTRaffle extends Contract {
    * @param randomnessOracle The app ID of the randomness oracle
    *
    */
-  @handle.createApplication
-  create(ticketPrice: number, randomnessOracle: number): void {
+  createApplication(ticketPrice: number, randomnessOracle: number): void {
     this.randomnessOracle.set(randomnessOracle);
     this.ticketPrice.set(ticketPrice);
   }

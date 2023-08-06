@@ -1,35 +1,37 @@
-#pragma version 8
-	b main
+#pragma version 9
 
-abi_route_create:
-	txn OnCompletion
-	int NoOp
-	==
-	txn ApplicationID
-	int 0
-	==
-	&&
-	assert
+txn ApplicationID
+int 0
+>
+int 6
+*
+txn OnCompletion
++
+switch create_NoOp NOT_IMPLEMENTED NOT_IMPLEMENTED NOT_IMPLEMENTED NOT_IMPLEMENTED NOT_IMPLEMENTED call_NoOp
 
+NOT_IMPLEMENTED:
+	err
+
+abi_route_createApplication:
 	// no dupn needed
 	txna ApplicationArgs 2
 	btoi
 	txna ApplicationArgs 1
 	btoi
-	callsub create
+	callsub createApplication
 	int 1
 	return
 
-create:
+createApplication:
 	proto 2 0
 
-	// examples/raffle/raffle.algo.ts:40
+	// examples/raffle/raffle.algo.ts:39
 	// this.randomnessOracle.set(randomnessOracle)
 	byte "randomnessOracle"
 	frame_dig -2 // randomnessOracle: uint64
 	app_global_put
 
-	// examples/raffle/raffle.algo.ts:41
+	// examples/raffle/raffle.algo.ts:40
 	// this.ticketPrice.set(ticketPrice)
 	byte "ticketPrice"
 	frame_dig -1 // ticketPrice: uint64
@@ -37,15 +39,6 @@ create:
 	retsub
 
 abi_route_setAsset:
-	txn OnCompletion
-	int NoOp
-	==
-	txn ApplicationID
-	int 0
-	!=
-	&&
-	assert
-
 	// no dupn needed
 	txna ApplicationArgs 1
 	btoi
@@ -57,7 +50,7 @@ abi_route_setAsset:
 setAsset:
 	proto 1 0
 
-	// examples/raffle/raffle.algo.ts:51
+	// examples/raffle/raffle.algo.ts:50
 	// assert(!this.asset.exists())
 	txna Applications 0
 	byte "asset"
@@ -67,36 +60,36 @@ setAsset:
 	!
 	assert
 
-	// examples/raffle/raffle.algo.ts:53
+	// examples/raffle/raffle.algo.ts:52
 	// sendAssetTransfer({
 	itxn_begin
 	int axfer
 	itxn_field TypeEnum
 
-	// examples/raffle/raffle.algo.ts:54
+	// examples/raffle/raffle.algo.ts:53
 	// assetReceiver: this.app.address
 	txna Applications 0
 	app_params_get AppAddress
 	assert
 	itxn_field AssetReceiver
 
-	// examples/raffle/raffle.algo.ts:55
+	// examples/raffle/raffle.algo.ts:54
 	// xferAsset: asset
 	frame_dig -1 // asset: asset
 	itxn_field XferAsset
 
-	// examples/raffle/raffle.algo.ts:56
+	// examples/raffle/raffle.algo.ts:55
 	// assetAmount: 0
 	int 0
 	itxn_field AssetAmount
 
-	// examples/raffle/raffle.algo.ts:57
+	// examples/raffle/raffle.algo.ts:56
 	// fee: 0
 	int 0
 	itxn_field Fee
 	itxn_submit
 
-	// examples/raffle/raffle.algo.ts:60
+	// examples/raffle/raffle.algo.ts:59
 	// this.asset.set(asset)
 	byte "asset"
 	frame_dig -1 // asset: asset
@@ -104,15 +97,6 @@ setAsset:
 	retsub
 
 abi_route_startRaffle:
-	txn OnCompletion
-	int NoOp
-	==
-	txn ApplicationID
-	int 0
-	!=
-	&&
-	assert
-
 	// no dupn needed
 	txna ApplicationArgs 2
 	btoi
@@ -125,7 +109,7 @@ abi_route_startRaffle:
 startRaffle:
 	proto 2 0
 
-	// examples/raffle/raffle.algo.ts:71
+	// examples/raffle/raffle.algo.ts:70
 	// assert(this.app.address.assetBalance(this.asset.get()) > 0)
 	txna Applications 0
 	app_params_get AppAddress
@@ -135,6 +119,13 @@ startRaffle:
 	asset_holding_get AssetBalance
 	assert
 	int 0
+	>
+	assert
+
+	// examples/raffle/raffle.algo.ts:72
+	// assert(draw > end)
+	frame_dig -2 // draw: uint64
+	frame_dig -1 // end: uint64
 	>
 	assert
 
@@ -152,14 +143,6 @@ startRaffle:
 	retsub
 
 abi_route_buyTickets:
-	txn OnCompletion
-	int NoOp
-	==
-	txn ApplicationID
-	int 0
-	!=
-	&&
-	assert
 	byte 0x
 	txna ApplicationArgs 1
 	btoi
@@ -244,10 +227,32 @@ buyTickets:
 	byte "totalTickets"
 	app_global_get
 	itob
+	byte 0xFFFFFFFFFFFFFFFF
+	b&
+	dupn 2
+	byte 0xFFFFFFFFFFFFFFFF
+	b<=
+	assert
+	len
+	int 8
+	-
+	int 8
+	extract3
 	frame_dig -3 // newTotal: uint64
 	int 1
 	-
 	itob
+	byte 0xFFFFFFFFFFFFFFFF
+	b&
+	dupn 2
+	byte 0xFFFFFFFFFFFFFFFF
+	b<=
+	assert
+	len
+	int 8
+	-
+	int 8
+	extract3
 	concat
 	box_put
 
@@ -259,14 +264,6 @@ buyTickets:
 	retsub
 
 abi_route_draw:
-	txn OnCompletion
-	int NoOp
-	==
-	txn ApplicationID
-	int 0
-	!=
-	&&
-	assert
 	byte 0x
 	callsub draw
 	int 1
@@ -344,14 +341,6 @@ draw:
 	retsub
 
 abi_route_claim:
-	txn OnCompletion
-	int NoOp
-	==
-	txn ApplicationID
-	int 0
-	!=
-	&&
-	assert
 	byte 0x
 	callsub claim
 	int 1
@@ -444,14 +433,6 @@ claim:
 	retsub
 
 abi_route_getRefund:
-	txn OnCompletion
-	int NoOp
-	==
-	txn ApplicationID
-	int 0
-	!=
-	&&
-	assert
 	byte 0x; dup
 	callsub getRefund
 	int 1
@@ -547,12 +528,13 @@ getRefund:
 	itxn_submit
 	retsub
 
-main:
-	txn NumAppArgs
-	bnz route_abi
+create_NoOp:
+	method "createApplication(uint64,uint64)void"
+	txna ApplicationArgs 0
+	match abi_route_createApplication
+	err
 
-route_abi:
-	method "create(uint64,uint64)void"
+call_NoOp:
 	method "setAsset(asset)void"
 	method "startRaffle(uint64,uint64)void"
 	method "buyTickets(pay,uint64)void"
@@ -560,5 +542,5 @@ route_abi:
 	method "claim()void"
 	method "getRefund()void"
 	txna ApplicationArgs 0
-	match abi_route_create abi_route_setAsset abi_route_startRaffle abi_route_buyTickets abi_route_draw abi_route_claim abi_route_getRefund
+	match abi_route_setAsset abi_route_startRaffle abi_route_buyTickets abi_route_draw abi_route_claim abi_route_getRefund
 	err
