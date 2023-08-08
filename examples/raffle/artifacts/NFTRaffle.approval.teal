@@ -329,14 +329,14 @@ draw:
 	frame_bury -1 // output: string
 
 	// examples/raffle/raffle.algo.ts:115
-	// this.winningTicket.set(extract_uint64(output, 0) / this.totalTickets.get())
+	// this.winningTicket.set(extract_uint64(output, 0) % this.totalTickets.get())
 	byte "winningTicket"
 	frame_dig -1 // output: string
 	int 0
 	extract_uint64
 	byte "totalTickets"
 	app_global_get
-	/
+	%
 	app_global_put
 	retsub
 

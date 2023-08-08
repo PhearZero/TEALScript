@@ -112,7 +112,7 @@ class NFTRaffle extends Contract {
       onCompletion: 'NoOp',
     });
 
-    this.winningTicket.set(extract_uint64(output, 0) / this.totalTickets.get());
+    this.winningTicket.set(extract_uint64(output, 0) % this.totalTickets.get());
   }
 
   /** Send the asset to the the sender if they have the winning ticket */
