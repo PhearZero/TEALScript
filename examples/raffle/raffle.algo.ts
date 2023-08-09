@@ -112,7 +112,11 @@ class NFTRaffle extends Contract {
       onCompletion: 'NoOp',
     });
 
-    this.winningTicket.set(extract_uint64(output, 0) % this.totalTickets.get());
+    // Use btobigint rather than extract_uin64 to use all bytes
+    // from the output to reduce modulo bias as much as possible.
+    // Modulo bias is likely insignficant in a lot of cases, but there's
+    // no reason not to reduce it as much as possible.
+    this.winningTicket.set(btobigint(output) % this.totalTickets.get());
   }
 
   /** Send the asset to the the sender if they have the winning ticket */

@@ -227,32 +227,10 @@ buyTickets:
 	byte "totalTickets"
 	app_global_get
 	itob
-	byte 0xFFFFFFFFFFFFFFFF
-	b&
-	dupn 2
-	byte 0xFFFFFFFFFFFFFFFF
-	b<=
-	assert
-	len
-	int 8
-	-
-	int 8
-	extract3
 	frame_dig -3 // newTotal: uint64
 	int 1
 	-
 	itob
-	byte 0xFFFFFFFFFFFFFFFF
-	b&
-	dupn 2
-	byte 0xFFFFFFFFFFFFFFFF
-	b<=
-	assert
-	len
-	int 8
-	-
-	int 8
-	extract3
 	concat
 	box_put
 
@@ -329,14 +307,14 @@ draw:
 	frame_bury -1 // output: string
 
 	// examples/raffle/raffle.algo.ts:115
-	// this.winningTicket.set(extract_uint64(output, 0) % this.totalTickets.get())
+	// this.winningTicket.set(btobigint(output) % this.totalTickets.get())
 	byte "winningTicket"
 	frame_dig -1 // output: string
-	int 0
-	extract_uint64
 	byte "totalTickets"
 	app_global_get
-	%
+	itob
+	b%
+	btoi
 	app_global_put
 	retsub
 
