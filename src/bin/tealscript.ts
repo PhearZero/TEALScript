@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import path from 'path';
-import * as fs from 'fs';
-import Compiler from '../lib/compiler';
+import fs from 'fs';
+import Compiler from '../lib/compiler.js';
 import 'dotenv/config';
 
 const filename = process.argv[2];

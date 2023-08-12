@@ -1,7 +1,8 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-module.exports = {
+export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  resolver: 'ts-jest-resolver',
   testPathIgnorePatterns: ['<rootDir>/node_modules/'],
   coveragePathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/tests/'],
   testTimeout: 30_000,

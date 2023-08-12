@@ -3,12 +3,16 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable no-unused-vars */
 import fetch from 'node-fetch';
-import * as vlq from 'vlq';
+import { decode } from 'vlq';
 import ts from 'typescript';
-import sourceMap from 'source-map';
-import path from 'path';
-import * as tsdoc from '@microsoft/tsdoc';
-import * as langspec from '../langspec.json';
+import type { RawSourceMap } from 'source-map';
+import { SourceMapGenerator } from 'source-map';
+// TODO: Bring basename over from path-browserify
+import { basename } from 'path';
+import { DocExcerpt, TSDocParser } from '@microsoft/tsdoc';
+import type { DocNode } from '@microsoft/tsdoc';
+import { langspec } from './langspec.js';
+import type { OpSpec } from './langspec';
 
 type OnComplete = 'NoOp' | 'OptIn' | 'CloseOut' | 'ClearState' | 'UpdateApplication' | 'DeleteApplication';
 const ON_COMPLETES: ['NoOp', 'OptIn', 'CloseOut', 'ClearState', 'UpdateApplication', 'DeleteApplication'] = ['NoOp', 'OptIn', 'CloseOut', 'ClearState', 'UpdateApplication', 'DeleteApplication'];
@@ -79,10 +83,10 @@ class TupleElement extends Array<TupleElement> {
 }
 
 // https://github.com/microsoft/tsdoc/blob/main/api-demo/src/Formatter.ts#L7-L18
-function renderDocNode(docNode: tsdoc.DocNode): string {
+function renderDocNode(docNode: DocNode): string {
   let result: string = '';
   if (docNode) {
-    if (docNode instanceof tsdoc.DocExcerpt) {
+    if (docNode instanceof DocExcerpt) {
       result += docNode.content.toString();
     }
 
@@ -219,20 +223,6 @@ const PARAM_TYPES: { [param: string]: string } = {
   Accounts: `ImmediateArray: ${ForeignType.Address}`,
 };
 
-interface OpSpec {
-  Opcode: number;
-  Name: string;
-  Size: number;
-  Doc: string;
-  Groups: string[];
-  Args: string;
-  Returns: string;
-  DocExtra: string;
-  ImmediateNote: string;
-  ArgEnum: string[];
-  ArgEnumTypes: string;
-}
-
 interface StorageProp {
   type: string;
   key?: string;
@@ -324,8 +314,8 @@ export default class Compiler {
   private rawSrcMap: {source: SourceInfo, teal: number, pc: number}[] = [];
 
   srcMaps?: {
-    pc: sourceMap.RawSourceMap,
-    teal: sourceMap.RawSourceMap,
+    pc: RawSourceMap,
+    teal: RawSourceMap,
   };
 
   private customTypes: {[name: string] : string} = {};
@@ -1149,7 +1139,7 @@ export default class Compiler {
       if (comment === '') return;
 
       try {
-        const tsdocParser = new tsdoc.TSDocParser();
+        const tsdocParser = new TSDocParser();
         const { docComment } = tsdocParser.parseString(comment);
 
         m.desc = renderDocNode(docComment.summarySection);
@@ -3489,7 +3479,7 @@ export default class Compiler {
 
     if (opSpec.Name.endsWith('256')) returnType = 'byte[32]';
 
-    this.push(node.expression, line.join(' '), returnType);
+    this.push(node.expression, line.join(' '), returnType || 'void');
   }
 
   private processStorageCall(node: ts.CallExpression) {
@@ -3763,7 +3753,7 @@ export default class Compiler {
     }
 
     const pcList = json.sourcemap.mappings.split(';').map((m: string) => {
-      const decoded = vlq.decode(m);
+      const decoded = decode(m);
       if (decoded.length > 2) return decoded[2];
       return undefined;
     });
@@ -3789,12 +3779,12 @@ export default class Compiler {
       this.pcToLine[pc] = lastLine;
     }
 
-    const tealSrcMap = new sourceMap.SourceMapGenerator({
+    const tealSrcMap = new SourceMapGenerator({
       file: `${this.name}.approval.teal`,
       sourceRoot: '',
     });
 
-    const pcSrcMap = new sourceMap.SourceMapGenerator({
+    const pcSrcMap = new SourceMapGenerator({
       file: `${this.name}.approval.teal`,
       sourceRoot: '',
     });
@@ -3803,13 +3793,13 @@ export default class Compiler {
       // TODO: Figure out what causes these 0s
       if (s.source.start.line === 0 || s.pc === 0) return;
       tealSrcMap.addMapping({
-        source: path.basename(this.filename),
+        source: basename(this.filename),
         original: { line: s.source.start.line, column: s.source.start.character },
         generated: { line: s.teal, column: 0 },
       });
 
       pcSrcMap.addMapping({
-        source: path.basename(this.filename),
+        source: basename(this.filename),
         original: { line: s.source.start.line, column: s.source.start.character },
         generated: { line: s.pc, column: 0 },
       });
