@@ -1,3 +1,10 @@
+# [1.1.0-beta.1](https://github.com/PhearZero/TEALScript/compare/v1.0.0...v1.1.0-beta.1) (2023-09-28)
+
+
+### Features
+
+* replace version.ts on release ([091b70f](https://github.com/PhearZero/TEALScript/commit/091b70f1d5b84ef7827cf4f498514ca202cb7e80))
+
 # 1.0.0 (2023-09-28)
 
 
